@@ -1,4 +1,5 @@
 const express = require('express')
+const morgan = require('morgan')
 const app = express()
 
 let persons = [
@@ -24,7 +25,12 @@ let persons = [
     }
 ]
 
+
 app.use(express.json())
+
+morgan.token('data', function (req, res) { return JSON.stringify(req.body) })
+
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :data'))
 
 app.get('/info', (request, response) => {
     const html = `<p>Phonebook has info for ${persons.length} people</p>
@@ -34,12 +40,10 @@ app.get('/info', (request, response) => {
 })
 
 app.get('/api/persons', (request, response) => {
-    console.log('get : /api/persons')
     response.json(persons)
 })
 
 app.get('/api/persons/:id', (request, response) => {
-    console.log('get id : /api/persons/:id')
     const id = parseInt(request.params.id)
     const person = persons.find(person => person.id === id)
     if (person) {
@@ -49,7 +53,6 @@ app.get('/api/persons/:id', (request, response) => {
 })
 
 app.delete('/api/persons/:id', (request, response) => {
-    console.log('delete : /api/persons/:id')
     const id = parseInt(request.params.id)
     persons = persons.filter(person => person.id !== id)
     response.status(204).end()
@@ -58,7 +61,6 @@ app.delete('/api/persons/:id', (request, response) => {
 const generateId = () => Math.floor(Math.random() * 100)
 
 app.post('/api/persons', ((request, response) => {
-    console.log('post : /api/persons')
     const body = request.body
     const error = {error: ""}
 
@@ -86,6 +88,12 @@ app.post('/api/persons', ((request, response) => {
 
     response.json(person)
 }))
+
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(unknownEndpoint)
 
 const PORT = 3001
 app.listen(PORT, () => {
