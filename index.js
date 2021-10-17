@@ -24,6 +24,8 @@ let persons = [
     }
 ]
 
+app.use(express.json())
+
 app.get('/info', (request, response) => {
     const html = `<p>Phonebook has info for ${persons.length} people</p>
     <p>${new Date()}</p>`
@@ -52,6 +54,38 @@ app.delete('/api/persons/:id', (request, response) => {
     persons = persons.filter(person => person.id !== id)
     response.status(204).end()
 })
+
+const generateId = () => Math.floor(Math.random() * 100)
+
+app.post('/api/persons', ((request, response) => {
+    console.log('post : /api/persons')
+    const body = request.body
+    const error = {error: ""}
+
+    const isPersonFound = persons.find(person => person.name === body.name)
+
+    if (!body.name) {
+        error.error = "name is missing"
+        return response.status(400).json(error)
+    } else if (!body.number) {
+        error.error = "number is missing"
+        return response.status(400).json(error)
+    } else if (isPersonFound) {
+        error.error = `a person with name ${body.name} already exists`
+        return response.status(400).json(error)
+    }
+
+    const person = {
+        name: body.name,
+        number: body.number,
+        id: generateId()
+
+    }
+
+    persons = persons.concat(person)
+
+    response.json(person)
+}))
 
 const PORT = 3001
 app.listen(PORT, () => {
