@@ -62,7 +62,7 @@ app.delete('/api/persons/:id', (request, response) => {
 
 const generateId = () => Math.floor(Math.random() * 100)
 
-app.post('/api/persons', ((request, response) => {
+app.post('/api/persons', (request, response) => {
     const body = request.body
     const error = {error: ""}
 
@@ -89,7 +89,18 @@ app.post('/api/persons', ((request, response) => {
     persons = persons.concat(person)
 
     response.json(person)
-}))
+})
+
+app.put('/api/persons/:id', (request, response) => {
+    const body = request.body
+    const index = persons.findIndex(person => person.name === body.name)
+
+    persons[index] = {
+        ...body
+    }
+
+    response.json(persons[index])
+})
 
 const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
